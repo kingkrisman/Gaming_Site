@@ -12,20 +12,29 @@ body {
 
 @layer base {
     @font-face {
+        font-family: 'zentry';
+        src: url('/fonts/zentry-regular.woff2') format('woff2');
+        font-display: swap;
+    }
+    @font-face {
         font-family: 'circular-web';
-        src: url('./fonts/circularweb-book.woff2') format('woff2'),
+        src: url('/fonts/circularweb-book.woff2') format('woff2');
+        font-display: swap;
     }
     @font-face {
         font-family: 'general';
-        src: url('./fonts/general.woff2') format('woff2'),
+        src: url('/fonts/general.woff2') format('woff2');
+        font-display: swap;
     }
     @font-face {
         font-family: 'robert-medium';
-        src: url('./fonts/robert-medium.woff2') format('woff2'),
+        src: url('/fonts/robert-medium.woff2') format('woff2');
+        font-display: swap;
     }
     @font-face {
         font-family: 'robert-regular';
-        src: url('./fonts/robert-regular.woff2') format('woff2'),
+        src: url('/fonts/robert-regular.woff2') format('woff2');
+        font-display: swap;
     }
 }
 
@@ -56,7 +65,7 @@ body {
     }
   
     .special-font b {
-      font-family: "Zentry";
+      font-family: "zentry";
       font-feature-settings: "ss01" on;
     }
   
@@ -159,108 +168,150 @@ body {
     }
   }
   
-  /* From Uiverse.io by G4b413l */
-  /* https://uiverse.io/G4b413l/tidy-walrus-92 */
-  .three-body {
-    --uib-size: 35px;
-    --uib-speed: 0.8s;
-    --uib-color: #5d3fd3;
-    position: relative;
+  /* ---------- Preloader ---------- */
+  .preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    pointer-events: all;
+  }
+
+  .preloader-layer {
+    position: absolute;
+    inset: 0;
+    clip-path: inset(0 0 0 0);
+  }
+
+  .preloader-letter {
     display: inline-block;
-    height: var(--uib-size);
-    width: var(--uib-size);
-    animation: spin78236 calc(var(--uib-speed) * 2.5) infinite linear;
+    transform-origin: 50% 100%;
+    will-change: transform, opacity;
   }
-  
-  .three-body__dot {
+
+  .preloader-grid {
+    background-image:
+      linear-gradient(rgba(223, 223, 240, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(223, 223, 240, 0.06) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  }
+
+  .preloader-glitch {
+    position: relative;
+  }
+
+  .preloader-glitch::before,
+  .preloader-glitch::after {
+    content: attr(data-text);
+    font-family: "zentry";
+    font-feature-settings: "ss01" on;
     position: absolute;
-    height: 100%;
-    width: 30%;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.7;
   }
-  
-  .three-body__dot:after {
-    content: "";
-    position: absolute;
-    height: 0%;
-    width: 100%;
-    padding-bottom: 100%;
-    background-color: var(--uib-color);
-    border-radius: 50%;
+
+  .preloader-glitch::before {
+    color: #4fb7dd;
+    animation: glitch-shift 1.6s infinite steps(2, end);
+    clip-path: inset(0 0 55% 0);
   }
-  
-  .three-body__dot:nth-child(1) {
-    bottom: 5%;
-    left: 0;
-    transform: rotate(60deg);
-    transform-origin: 50% 85%;
+
+  .preloader-glitch::after {
+    color: #5724ff;
+    animation: glitch-shift 1.3s infinite reverse steps(2, end);
+    clip-path: inset(55% 0 0 0);
   }
-  
-  .three-body__dot:nth-child(1)::after {
-    bottom: 0;
-    left: 0;
-    animation: wobble1 var(--uib-speed) infinite ease-in-out;
-    animation-delay: calc(var(--uib-speed) * -0.3);
+
+  @keyframes glitch-shift {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-4px, 2px); }
+    40% { transform: translate(3px, -2px); }
+    60% { transform: translate(-2px, 0); }
+    80% { transform: translate(4px, 1px); }
   }
-  
-  .three-body__dot:nth-child(2) {
-    bottom: 5%;
-    right: 0;
-    transform: rotate(-60deg);
-    transform-origin: 50% 85%;
+
+  /* ---------- Custom cursor ---------- */
+  .has-custom-cursor,
+  .has-custom-cursor * {
+    cursor: none !important;
   }
-  
-  .three-body__dot:nth-child(2)::after {
-    bottom: 0;
-    left: 0;
-    animation: wobble1 var(--uib-speed) infinite calc(var(--uib-speed) * -0.15)
-      ease-in-out;
-  }
-  
-  .three-body__dot:nth-child(3) {
-    bottom: -5%;
-    left: 0;
-    transform: translateX(116.666%);
-  }
-  
-  .three-body__dot:nth-child(3)::after {
+
+  .cursor-dot,
+  .cursor-ring {
+    position: fixed;
     top: 0;
     left: 0;
-    animation: wobble2 var(--uib-speed) infinite ease-in-out;
+    z-index: 300;
+    pointer-events: none;
+    border-radius: 9999px;
+    mix-blend-mode: difference;
   }
-  
-  @keyframes spin78236 {
-    0% {
-      transform: rotate(0deg);
-    }
-  
-    100% {
-      transform: rotate(360deg);
+
+  .cursor-dot {
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    background: #fff;
+  }
+
+  .cursor-ring {
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 1.5px solid #fff;
+    transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+      height 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+      margin 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+      background-color 0.3s ease;
+  }
+
+  .cursor-ring.is-hovering {
+    width: 80px;
+    height: 80px;
+    margin: -40px 0 0 -40px;
+    background-color: #fff;
+  }
+
+  /* ---------- Marquee ---------- */
+  .marquee-text {
+    @apply whitespace-nowrap font-zentry font-black uppercase leading-none;
+    font-size: clamp(4rem, 14vw, 12rem);
+  }
+
+  .text-outline {
+    color: transparent;
+    -webkit-text-stroke: 2px #dfdff0;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero-char {
+    display: inline-block;
+    will-change: transform, opacity;
+  }
+
+  /* ---------- Spotlight on bento cards ---------- */
+  .spotlight {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      500px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(237, 255, 102, 0.18),
+      transparent 45%
+    );
+  }
+
+  .group:hover > .spotlight {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .preloader-glitch::before,
+    .preloader-glitch::after {
+      animation: none;
     }
   }
-  
-  @keyframes wobble1 {
-    0%,
-    100% {
-      transform: translateY(0%) scale(1);
-      opacity: 1;
-    }
-  
-    50% {
-      transform: translateY(-66%) scale(0.65);
-      opacity: 0.8;
-    }
-  }
-  
-  @keyframes wobble2 {
-    0%,
-    100% {
-      transform: translateY(0%) scale(1);
-      opacity: 1;
-    }
-  
-    50% {
-      transform: translateY(66%) scale(0.65);
-      opacity: 0.8;
-    }
-  }
-  

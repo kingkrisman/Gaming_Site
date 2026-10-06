@@ -1,11 +1,42 @@
 import gsap from "gsap";
 import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import Button from "./Button";
 import AnimatedTitle from "./AnimatedTitle";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const FloatingImage = () => {
   const frameRef = useRef(null);
+  const sectionRef = useRef(null);
+
+  // The portal irises open from a sliver as it scrolls into view.
+  useGSAP(
+    () => {
+      gsap.fromTo(
+        ".story-img-mask",
+        { clipPath: "polygon(50% 40%, 52% 45%, 50% 60%, 48% 45%)" },
+        {
+          clipPath: "polygon(4% 0, 83% 21%, 100% 73%, 0% 100%)",
+          ease: "power2.out",
+          scrollTrigger: { trigger: ".story-img-container", start: "top 85%", end: "center center", scrub: 1 },
+        }
+      );
+      gsap.fromTo(
+        ".story-img-content",
+        { scale: 1.4, rotate: -6 },
+        {
+          scale: 1,
+          rotate: 0,
+          ease: "none",
+          scrollTrigger: { trigger: ".story-img-container", start: "top bottom", end: "bottom top", scrub: true },
+        }
+      );
+    },
+    { scope: sectionRef }
+  );
 
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;
@@ -46,7 +77,7 @@ const FloatingImage = () => {
   };
 
   return (
-    <div id="story" className="min-h-dvh w-screen bg-black text-blue-50">
+    <div ref={sectionRef} id="story" className="min-h-dvh w-screen bg-black text-blue-50">
       <div className="flex size-full flex-col items-center py-10 pb-24">
         <p className="font-general text-sm uppercase md:text-[10px]">
           the multiversal ip world
@@ -68,6 +99,8 @@ const FloatingImage = () => {
                   onMouseUp={handleMouseLeave}
                   onMouseEnter={handleMouseLeave}
                   src="/img/entrance.webp"
+                  loading="lazy"
+                  decoding="async"
                   alt="entrance.webp"
                   className="object-contain"
                 />
