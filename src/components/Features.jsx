@@ -1,5 +1,52 @@
-import { useState, useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useState, useRef, useEffect } from "react";
 import { TiLocationArrow } from "react-icons/ti";
+
+gsap.registerPlugin(ScrollTrigger);
+
+// Doesn't download a byte until it's near the viewport, and pauses when off-screen.
+export const LazyVideo = ({ src, className }) => {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { rootMargin: "200px 0px" }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (inView) ref.current?.play().catch(() => {});
+  }, [inView]);
+
+  return (
+    <video
+      ref={ref}
+      src={inView ? src : undefined}
+      loop
+      muted
+      playsInline
+      preload="none"
+      className={className}
+    />
+  );
+};
 
 export const BentoTilt = ({ children, className = "" }) => {
   const [transformStyle, setTransformStyle] = useState("");
@@ -19,6 +66,8 @@ export const BentoTilt = ({ children, className = "" }) => {
 
     const newTransform = `perspective(700px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(.95, .95, .95)`;
     setTransformStyle(newTransform);
+    itemRef.current.style.setProperty("--mx", `${relativeX * 100}%`);
+    itemRef.current.style.setProperty("--my", `${relativeY * 100}%`);
   };
 
   const handleMouseLeave = () => {
@@ -28,12 +77,13 @@ export const BentoTilt = ({ children, className = "" }) => {
   return (
     <div
       ref={itemRef}
-      className={className}
+      className={`bento-reveal group ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ transform: transformStyle }}
     >
       {children}
+      <div className="spotlight" />
     </div>
   );
 };
@@ -58,12 +108,9 @@ export const BentoCard = ({ src, title, description, isComingSoon }) => {
 
   return (
     <div className="relative size-full">
-      <video
+      <LazyVideo
         src={src}
-        loop
-        muted
-        autoPlay
-        className="absolute left-0 top-0 size-full object-cover object-center"
+        className="absolute left-0 top-0 size-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110"
       />
       <div className="relative z-10 flex size-full flex-col justify-between p-5 text-blue-50">
         <div>
@@ -98,10 +145,49 @@ export const BentoCard = ({ src, title, description, isComingSoon }) => {
   );
 };
 
-const Features = () => (
-  <section className="bg-black pb-52">
+const Features = () => {
+  const sectionRef = useRef(null);
+
+  useGSAP(
+    () => {
+      gsap.from(".features-intro > *", {
+        y: 60,
+        opacity: 0,
+        stagger: 0.12,
+        duration: 1,
+        ease: "expo.out",
+        scrollTrigger: { trigger: ".features-intro", start: "top 85%" },
+      });
+
+      ScrollTrigger.batch(".bento-reveal", {
+        start: "top 90%",
+        once: true,
+        onEnter: (els) =>
+          gsap.fromTo(
+            els,
+            { clipPath: "inset(30% 10% 30% 10% round 24px)", y: 120, rotateX: -25, opacity: 0, transition: "none" },
+            {
+              clipPath: "inset(0% 0% 0% 0% round 6px)",
+              y: 0,
+              rotateX: 0,
+              opacity: 1,
+              transition: "none",
+              duration: 1.3,
+              stagger: 0.15,
+              ease: "expo.out",
+              transformPerspective: 1000,
+              clearProps: "clipPath,transform,transition",
+            }
+          ),
+      });
+    },
+    { scope: sectionRef }
+  );
+
+  return (
+  <section ref={sectionRef} className="bg-black pb-52">
     <div className="container mx-auto px-3 md:px-10">
-      <div className="px-5 py-32">
+      <div className="features-intro px-5 py-32">
         <p className="font-circular-web text-lg text-blue-50">
           Into the Metagame Layer
         </p>
@@ -176,17 +262,15 @@ const Features = () => (
         </BentoTilt>
 
         <BentoTilt className="bento-tilt_2">
-          <video
+          <LazyVideo
             src="videos/feature-5.mp4"
-            loop
-            muted
-            autoPlay
             className="size-full object-cover object-center"
           />
         </BentoTilt>
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default Features;
